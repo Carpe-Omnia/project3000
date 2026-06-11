@@ -40,3 +40,9 @@ def speak(text: str):
     sd.play(audio_data, sample_rate)
     sd.wait()
     print("[speak] Done.")
+
+def play_file(filepath: str):
+    """Play a pre-generated audio file instantly, no API call."""
+    audio_data, sample_rate = sf.read(filepath)
+    sd.play(audio_data, sample_rate)
+    sd.wait()
