@@ -6,7 +6,7 @@ from pipeline.wake import wait_for_wake_word, flush_mic
 from pipeline.listen import record_until_silence
 from pipeline.transcribe import transcribe
 from pipeline.think import get_response
-from pipeline.speak import speak, play_file
+from pipeline.speak import speak, play_file, play_file_async
 
 SHUTOFF_KEYWORDS = [
     ["bye"],
@@ -23,6 +23,7 @@ SHUTOFF_KEYWORDS = [
 
 WAKE_FILES = sorted(glob.glob("audio/wake_responses/wake_*.wav"))
 GOODBYE_FILES = sorted(glob.glob("audio/goodbye_responses/goodbye_*.wav"))
+THINKING_FILES = sorted(glob.glob("audio/thinking_responses/thinking_*.wav"))
 
 
 def get_wake_response():
@@ -32,6 +33,8 @@ def get_wake_response():
 def get_goodbye_response():
     return random.choice(GOODBYE_FILES) if GOODBYE_FILES else None
 
+def get_thinking_response():
+    return random.choice(THINKING_FILES) if THINKING_FILES else None
 
 def is_shutoff(text: str) -> bool:
     words = text.lower().strip().split()
@@ -84,6 +87,12 @@ def main():
                 flush_mic(seconds=2.0)
                 print("[main] Shutoff detected. Back to listening.")
                 continue
+
+            # Play thinking phrase WHILE Claude is being called
+            # This runs instantly from disk, no API cost, makes the wait feel natural
+            thinking_file = get_thinking_response()
+            if thinking_file:
+                play_file_async(thinking_file)
 
             # Stage 6: get response
             response = get_response(customer_message)

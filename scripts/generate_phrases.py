@@ -22,9 +22,18 @@ GOODBYE_RESPONSES = [
     "I'm here all day.",
 ]
 
+THINKING_RESPONSES = [
+    "Uhhhh.",
+    "Yeah, let me check.",
+    "For sure, give me a sec.",
+    "Hmm, let me think.",
+    "Good question, one sec.",
+    "Yeah hold on.",
+]
+
 OUTPUT_DIR_WAKE = "audio/wake_responses"
 OUTPUT_DIR_GOODBYE = "audio/goodbye_responses"
-
+OUTPUT_DIR_THINKING = "audio/thinking_responses"
 
 def generate_phrase(text: str, output_path: str):
     """Generate a single phrase and save it to output_path."""
@@ -59,12 +68,17 @@ def generate_phrase(text: str, output_path: str):
 
 if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR_WAKE, exist_ok=True)
-    os.makedirs(OUTPUT_DIR_GOODBYE, exist_ok=True)
+    os.makedirs(OUTPUT_DIR_GOODBYE, exist_ok=True)  
+    os.makedirs(OUTPUT_DIR_THINKING, exist_ok=True)  
 
     for i, phrase in enumerate(WAKE_RESPONSES):
         generate_phrase(phrase, os.path.join(OUTPUT_DIR_WAKE, f"wake_{i}.wav"))
 
     for i, phrase in enumerate(GOODBYE_RESPONSES):
         generate_phrase(phrase, os.path.join(OUTPUT_DIR_GOODBYE, f"goodbye_{i}.wav"))
+    for i, phrase in enumerate(THINKING_RESPONSES):
+        generate_phrase(phrase, os.path.join(OUTPUT_DIR_THINKING, f"thinking_{i}.wav"))
 
     print(f"\nDone. Generated {len(WAKE_RESPONSES) + len(GOODBYE_RESPONSES)} phrases.")
+
+
