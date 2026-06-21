@@ -3,7 +3,7 @@ import numpy as np
 import time
 from openwakeword.model import Model
 
-_model = Model(wakeword_models=["models/hey_robomaz.onnx"], inference_framework="onnx")
+_model = Model(["models/hey_robomaz.onnx"])
 
 CHUNK = 1280
 SAMPLE_RATE = 16000
