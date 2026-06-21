@@ -40,8 +40,8 @@ def record_until_silence() -> np.ndarray:
         frames.append(data)
 
         # Check volume level of this chunk
-        audio_chunk = np.frombuffer(data, dtype=np.int16)
-        volume = np.abs(audio_chunk).mean()
+        audio_chunk = np.frombuffer(data, dtype=np.int16).astype(np.float32)
+        volume = np.sqrt(np.mean(audio_chunk**2))  # RMS volume, always positive
         
         print(f"[listen] volume: {volume:.1f}")  # ADD THIS LINE temporarily
 
