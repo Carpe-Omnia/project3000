@@ -4,23 +4,29 @@ import numpy as np
 SAMPLE_RATE = 16000
 CHANNELS = 1
 CHUNK = 1024
-SILENCE_THRESHOLD = 500      # raise if it cuts off too early, lower if it never stops
+SILENCE_THRESHOLD = 200      # raise if it cuts off too early, lower if it never stops
 SILENCE_DURATION = 2.0       # seconds of silence before we stop recording
 FORMAT = pyaudio.paInt16
 
 
 def record_until_silence() -> np.ndarray:
-    """
-    Records from mic until the speaker goes silent for SILENCE_DURATION seconds.
-    Returns audio as a numpy float32 array ready for Whisper.
-    """
     audio = pyaudio.PyAudio()
+    
+    # Find the seeed device index
+    device_index = None
+    for i in range(audio.get_device_count()):
+        info = audio.get_device_info_by_index(i)
+        if 'seeed' in info['name'].lower():
+            device_index = i
+            print(f"[listen] Using device {i}: {info['name']}")
+            break
+    
     stream = audio.open(
         format=FORMAT,
         channels=CHANNELS,
         rate=SAMPLE_RATE,
         input=True,
-        input_device_index=0,  # seeed2micvoicec is device 0 in sounddevice
+        input_device_index=device_index,
         frames_per_buffer=CHUNK
     )
 
