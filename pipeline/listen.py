@@ -2,7 +2,7 @@ import pyaudio
 import numpy as np
 
 SAMPLE_RATE = 16000
-CHANNELS = 1
+CHANNELS = 2  # change from 1 to 2
 CHUNK = 1024
 SILENCE_THRESHOLD = 200      # raise if it cuts off too early, lower if it never stops
 SILENCE_DURATION = 2.0       # seconds of silence before we stop recording
@@ -40,8 +40,9 @@ def record_until_silence() -> np.ndarray:
         frames.append(data)
 
         # Check volume level of this chunk
-        audio_chunk = np.frombuffer(data, dtype=np.int16).astype(np.float32)
-        volume = np.sqrt(np.mean(audio_chunk**2))  # RMS volume, always positive
+        audio_chunk = np.frombuffer(data, dtype=np.int16).reshape(-1, 2)
+        audio_chunk = audio_chunk[:, 0].astype(np.float32)  # left channel only
+        volume = np.sqrt(np.mean(audio_chunk**2))
         
         print(f"[listen] volume: {volume:.1f}")  # ADD THIS LINE temporarily
 
@@ -60,4 +61,9 @@ def record_until_silence() -> np.ndarray:
 
     # Convert to float32 for Whisper
     audio_data = np.frombuffer(b"".join(frames), dtype=np.int16)
-    return audio_data.astype(np.float32) / 32768.0
+
+    # Reshape to stereo and take left channel only
+    stereo = audio_data.reshape(-1, 2)
+    mono = stereo[:, 0]  # left channel — the one facing you
+    
+    return mono.astype(np.float32) / 32768.0
