@@ -50,7 +50,7 @@ def main():
 
     print("Robomaz is ready.")
     speak("Hey, what's up. Ask me anything.")
-    flush_mic(seconds=2.0)
+    flush_mic(seconds=1.0)
 
     while True:
         try:

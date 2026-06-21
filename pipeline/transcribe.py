@@ -2,7 +2,7 @@ import whisper
 
 # Load once at import time — keeps it fast during conversations
 # Use "tiny" for speed, "small" for better accuracy
-_model = whisper.load_model("small")
+_model = whisper.load_model("tiny")
 
 
 def transcribe(audio: "np.ndarray") -> str:
