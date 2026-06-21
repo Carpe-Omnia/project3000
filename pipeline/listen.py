@@ -20,6 +20,7 @@ def record_until_silence() -> np.ndarray:
         channels=CHANNELS,
         rate=SAMPLE_RATE,
         input=True,
+        input_device_index=0,  # seeed2micvoicec is device 0 in sounddevice
         frames_per_buffer=CHUNK
     )
 
