@@ -2,25 +2,29 @@ import pyaudio
 import numpy as np
 
 SAMPLE_RATE = 16000
-CHANNELS = 2  # change from 1 to 2
+CHANNELS = 1
 CHUNK = 1024
-SILENCE_THRESHOLD = 200      # raise if it cuts off too early, lower if it never stops
+SILENCE_THRESHOLD = 1500     # tuned for USB lavalier mic
 SILENCE_DURATION = 2.0       # seconds of silence before we stop recording
 FORMAT = pyaudio.paInt16
 
 
 def record_until_silence() -> np.ndarray:
+    """
+    Records from mic until the speaker goes silent for SILENCE_DURATION seconds.
+    Returns audio as a numpy float32 array ready for Whisper.
+    """
     audio = pyaudio.PyAudio()
-    
-    # Find the seeed device index
+
+    # Find USB mic automatically
     device_index = None
     for i in range(audio.get_device_count()):
         info = audio.get_device_info_by_index(i)
-        if 'seeed' in info['name'].lower():
+        if 'usb' in info['name'].lower():
             device_index = i
             print(f"[listen] Using device {i}: {info['name']}")
             break
-    
+
     stream = audio.open(
         format=FORMAT,
         channels=CHANNELS,
@@ -30,28 +34,48 @@ def record_until_silence() -> np.ndarray:
         frames_per_buffer=CHUNK
     )
 
+    # Discard first second — hardware warmup noise
+    warmup_chunks = int(SAMPLE_RATE / CHUNK * 1.0)
+    print("[listen] Warming up mic...")
+    for _ in range(warmup_chunks):
+        stream.read(CHUNK, exception_on_overflow=False)
+
     print("[listen] Listening...")
     frames = []
     silent_chunks = 0
+    peak_volume = 0
+    has_speech = False
     required_silent_chunks = int(SILENCE_DURATION * SAMPLE_RATE / CHUNK)
 
     while True:
         data = stream.read(CHUNK, exception_on_overflow=False)
         frames.append(data)
 
-        # Check volume level of this chunk
-        audio_chunk = np.frombuffer(data, dtype=np.int16).reshape(-1, 2)
-        audio_chunk = audio_chunk[:, 0].astype(np.float32)  # left channel only
+        # RMS volume — always positive, handles signed int16 correctly
+        audio_chunk = np.frombuffer(data, dtype=np.int16).astype(np.float32)
         volume = np.sqrt(np.mean(audio_chunk**2))
-        
-        print(f"[listen] volume: {volume:.1f}")  # ADD THIS LINE temporarily
 
-        if volume < SILENCE_THRESHOLD:
+        # Track peak to detect relative silence
+        if volume > peak_volume:
+            peak_volume = volume
+
+        # Dynamic threshold — silence is when volume drops to 20% of peak
+        dynamic_threshold = max(SILENCE_THRESHOLD, peak_volume * 0.2)
+
+        if volume < dynamic_threshold:
             silent_chunks += 1
         else:
-            silent_chunks = 0  # reset on any sound
+            silent_chunks = 0
+            if volume > SILENCE_THRESHOLD * 2:
+                has_speech = True  # confirm we actually heard something
 
-        if silent_chunks >= required_silent_chunks and len(frames) > required_silent_chunks:
+        # Only stop if we detected speech AND then silence
+        if has_speech and silent_chunks >= required_silent_chunks:
+            break
+
+        # Safety timeout — 15 seconds max
+        if len(frames) > SAMPLE_RATE / CHUNK * 15:
+            print("[listen] Timeout reached.")
             break
 
     print("[listen] Done recording.")
@@ -59,11 +83,5 @@ def record_until_silence() -> np.ndarray:
     stream.close()
     audio.terminate()
 
-    # Convert to float32 for Whisper
     audio_data = np.frombuffer(b"".join(frames), dtype=np.int16)
-
-    # Reshape to stereo and take left channel only
-    stereo = audio_data.reshape(-1, 2)
-    mono = stereo[:, 0]  # left channel — the one facing you
-    
-    return mono.astype(np.float32) / 32768.0
+    return audio_data.astype(np.float32) / 32768.0

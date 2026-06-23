@@ -38,9 +38,9 @@ def get_thinking_response():
 
 def is_shutoff(text: str) -> bool:
     words = text.lower().strip().split()
-    for keyword_group in SHUTOFF_KEYWORDS:
-        if all(any(kw in word for word in words) for kw in keyword_group):
-            return True
+    #for keyword_group in SHUTOFF_KEYWORDS:
+        #if all(any(kw in word for word in words) for kw in keyword_group):
+            #return True
     return False
 
 
