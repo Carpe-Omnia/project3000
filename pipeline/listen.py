@@ -1,7 +1,8 @@
 import pyaudio
 import numpy as np
+import scipy.signal
 
-SAMPLE_RATE = 16000
+SAMPLE_RATE = 44100
 CHANNELS = 1
 CHUNK = 1024
 SILENCE_THRESHOLD = 1500     # tuned for USB lavalier mic
@@ -83,5 +84,10 @@ def record_until_silence() -> np.ndarray:
     stream.close()
     audio.terminate()
 
-    audio_data = np.frombuffer(b"".join(frames), dtype=np.int16)
-    return audio_data.astype(np.float32) / 32768.0
+    audio_data = np.frombuffer(b"".join(frames), dtype=np.int16).astype(np.float32) / 32768.0
+
+    # Resample from 44100 to 16000 for Whisper
+    import scipy.signal
+    audio_resampled = scipy.signal.resample_poly(audio_data, 16000, 44100)
+
+    return audio_resampled
