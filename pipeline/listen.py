@@ -5,7 +5,7 @@ import scipy.signal
 SAMPLE_RATE = 44100
 CHANNELS = 1
 CHUNK = 1024
-SILENCE_THRESHOLD = 1500     # tuned for USB lavalier mic
+SILENCE_THRESHOLD = 200     # tuned for USB lavalier mic
 SILENCE_DURATION = 2.0       # seconds of silence before we stop recording
 FORMAT = pyaudio.paInt16
 
