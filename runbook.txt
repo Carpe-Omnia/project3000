@@ -1,0 +1,10 @@
+cd project3000
+source venv/bin/activate 
+python3 main.py
+# runs the code
+
+vcgencmd measure_temp
+#check the temperature
+
+
+sudo nmcli connection add type wifi ssid "GSNG" wifi-sec.key-mgmt wpa-psk wifi-sec.psk 4597NJ27! connection.id work-wifi

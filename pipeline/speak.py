@@ -54,7 +54,7 @@ def speak(text: str):
     audio_data, sample_rate = sf.read(io.BytesIO(ffmpeg_proc.stdout))
 
     # Software volume boost
-    audio_data = audio_data * 3.0
+    audio_data = audio_data * 5.0
     audio_data = np.clip(audio_data, -1.0, 1.0)
 
     sd.play(audio_data, sample_rate, device=_get_output_device())
